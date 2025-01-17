@@ -1,15 +1,26 @@
 import * as fs from "@std/fs";
 import * as path from "@std/path";
+import * as url from "node:url";
 
+// get script directory
 const dirName = import.meta.dirname!;
+const workDir = Deno.cwd();
 
-for (const file of fs.expandGlobSync("./script/**/*.ts", { root: dirName })) {
-  const relativePath = `./${path.relative(dirName, file.path)}`;
+const isDenoRT = Deno.mainModule.includes("deno-compile");
+const searchRoot = isDenoRT ? workDir : dirName;
 
-  console.log(`===>running ${relativePath}`);
-  const module = await import(relativePath);
+console.log(`searchRoot: ${searchRoot}`);
+
+// search all ts files in script directory
+for (
+  const file of fs.expandGlobSync("./script/**/*.ts", {
+    root: searchRoot,
+  })
+) {
+  console.log(`===>running ${file.path}`);
+  const module = await import(`File:///${file.path}`);
   for (const key in module) {
     console.log(`[${typeof module[key]}] ${key}`);
   }
-  console.log(`===>end running ${relativePath}`);
+  console.log(`===>end running ${file.path}`);
 }
