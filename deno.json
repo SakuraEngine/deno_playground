@@ -3,6 +3,8 @@
     "@std/fs": "jsr:@std/fs",
     "@std/path": "jsr:@std/path",
     "@std/url": "jsr:@std/url",
+    "@std/assert": "jsr:@std/assert@1",
+
     "@skr/": "./sakura_import/"
   },
   "lock": "deno.lock"
