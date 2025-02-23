@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "@std/assert": "npm:@jsr/std__assert",
+    "@std/cache": "npm:@jsr/std__cache"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "name": "build.ts.playground",
+  "module": "index.ts",
+  "type": "module",
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

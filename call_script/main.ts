@@ -1,26 +1,20 @@
-import * as fs from "@std/fs";
-import * as path from "@std/path";
+import { Glob } from "bun";
 import * as url from "node:url";
 
 // get script directory
 const dirName = import.meta.dirname!;
-const workDir = Deno.cwd();
-
-const isDenoRT = Deno.mainModule.includes("deno-compile");
-const searchRoot = isDenoRT ? workDir : dirName;
+const searchRoot = process.cwd();
 
 console.log(`searchRoot: ${searchRoot}`);
 
 // search all ts files in script directory
-for (
-  const file of fs.expandGlobSync("./script/**/*.ts", {
-    root: searchRoot,
-  })
-) {
-  console.log(`===>running ${file.path}`);
-  const module = await import(`File:///${file.path}`);
+const glob = new Glob("**/script/**/*.ts");
+for await (const file of glob.scan({ cwd: searchRoot, absolute: true})) {
+  
+  console.log(`===>running ${file}`);
+  const module = await import(`${file}`);
   for (const key in module) {
     console.log(`[${typeof module[key]}] ${key}`);
   }
-  console.log(`===>end running ${file.path}`);
+  console.log(`===>end running ${file}`);
 }

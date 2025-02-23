@@ -1,30 +1,38 @@
 import { ListLogicalDisks } from "./list_windows_disks.ts";
-import { memoize } from "jsr:@std/cache";
-import * as fs from "@std/fs";
+import { assertEquals } from "@std/assert";
+import { memoize } from "@std/cache";
+import { Glob } from "bun";
 
-const findVCVars = async function() {
-    const disks = await ListLogicalDisks();
-    const files = new Array<string>();
-    for (const disk of disks)
-    {
-        const bats = fs.expandGlob(`${disk}:/Program Files/Microsoft Visual Studio/*/*/VC/Auxiliary/Build/vcvarsall.bat`);
-        for await (const bat of bats)
-        {
-            files.push(bat.path);
-        }
+const glob = new Glob("./**/VC/Auxiliary/Build/vcvarsall.bat");
+const findVCVars = async function () {
+  const disks = await ListLogicalDisks();
+  const files = new Array<string>();
+  for (const disk of disks) {
+    var searchRoot = `${disk}:/Program Files/Microsoft Visual Studio`;
+    try {
+      for await (const bat of glob.scan({ cwd: searchRoot, absolute: true }))
+        files.push(bat);
     }
-    return files;
+    catch (e: any) {
+      if (e.code == "EPERM")
+        console.log(e);
+    }
+  }
+  return files;
 }
 const findOnce = memoize(findVCVars);
 export function FindVCVars() {
-    return findOnce(); 
-} 
+  return findOnce();
+}
 
-import { assertEquals } from "@std/assert";
-Deno.test(async function TestFindVCVars() {
-    const bats = await FindVCVars();
-    for (const bat of bats)
-    {
-        assertEquals(await fs.exists(bat), true);
-    }
+import { test } from "bun:test";
+
+test("FindVCVars", async () => {
+  const bats = await FindVCVars();
+  for (const bat of bats) {
+  {
+    console.log(bat);
+    assertEquals(await Bun.file(bat).exists(), true);
+  }
+  }
 });
